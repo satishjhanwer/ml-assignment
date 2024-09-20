@@ -17,15 +17,15 @@ df["Marital.Status"] = df["Marital.Status"].map(
 )
 df["Urban"] = df["Urban"].map({"YES": 1, "NO": 0})
 
-# Separate the features (X) and target (y)
+# Separate the features (X) and target (Y)
 X = df.drop(columns=["Risk"])  # Features
-y = df["Risk"]  # Target (Risk)
+Y = df["Risk"]  # Target (Risk)
 
 
 # Split the data into 80% training and 20% testing
 train_size = int(0.8 * len(df))
 X_train, X_test = X[:train_size], X[train_size:]  # First 80% for training
-y_train, y_test = y[:train_size], y[train_size:]  # Remaining 20% for testing
+Y_train, Y_test = Y[:train_size], Y[train_size:]  # Remaining 20% for testing
 
 
 # GINI Index calculation
@@ -152,8 +152,8 @@ def predict(node, row):
 
 
 # Convert training and test data to lists
-train_data = np.column_stack([X_train.values, y_train.values]).tolist()
-test_data = np.column_stack([X_test.values, y_test.values]).tolist()
+train_data = np.column_stack([X_train.values, Y_train.values]).tolist()
+test_data = np.column_stack([X_test.values, Y_test.values]).tolist()
 
 # Build the decision tree
 max_depth = 5  # Maximum depth of the tree
