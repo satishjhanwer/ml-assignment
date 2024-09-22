@@ -22,7 +22,7 @@ For the given loan data, use Decision Trees to prepare a model on fraud data, tr
 ## Assumptions
 
 - No missing values in the dataset.
-- The decision tree is restricted by `max_depth = 5` and `min_size = 10` to prevent overfitting.
+- The decision tree is restricted by `max_depth in [3, 5, 7, 9]` and `min_size = 10` to prevent overfitting.
 
 ## Implementation Details
 
@@ -30,28 +30,31 @@ For the given loan data, use Decision Trees to prepare a model on fraud data, tr
 - Dropped the `City.Population` and `Taxable.Income` columns/attributes.
 - Used 80% of the data as `training data` and the remaining 20% as `test data`.
 - Calculated the GINI index to measure the impurity of the information gain.
-- Implemented a binary split to feature all the attributes.
+- Implemented binary split to feature all the attributes.
 - Converted categorical columns (`Undergrad`, `Marital.Status`, `Urban`) into numerical format.
 - Implemented recursive splitting to build the decision tree and determine the best splits for each node.
 
 ## Model Evaluation
 
-- **Confusion Matrix**:
+We experimented with several tree depths `[3, 5, 7, 9]` to observe their impact on modal's accuracy and execution time.
 
-  |              | Predicted Risky | Predicted Good |
-  | ------------ | --------------- | -------------- |
-  | Actual Risky | TP              | FN             |
-  | Actual Good  | FP              | TN             |
+**Decision Tree Experiment Results (Reduced Depths):**
 
-- **Recall**: `92.31%`
-- **Accuracy**: `81.67%`
-- **F1-Score**: `89.72%`
-- **Precision**: `87.27%`
+| Max Depth | Accuracy | Precision | Recall  | F1 Score | Execution Time |
+| --------- | -------- | --------- | ------- | -------- | -------------- |
+| 3         | 86.67%   | 86.67%    | 100.00% | 92.86%   | 0.2256 seconds |
+| 5         | 81.67%   | 87.27%    | 92.31%  | 89.72%   | 0.2350 seconds |
+| 7         | 84.17%   | 87.61%    | 95.19%  | 91.24%   | 0.2531 seconds |
+| 9         | 76.67%   | 86.54%    | 86.54%  | 86.54%   | 0.2775 seconds |
 
-## Result
+## Best Performing Model
 
-- **Accuracy:** `81.67%`
-- **Execution Time:** `0.1703 seconds`
+- **Max Depth:** `3`
+- **Recall**: `100.00%`
+- **Accuracy:** `86.67%`
+- **F1-Score**: `92.86%`
+- **Precision**: `86.67%`
+- **Execution Time:** `0.2256 seconds`
 
 ## Challenges & Learnings
 
@@ -61,4 +64,4 @@ For the given loan data, use Decision Trees to prepare a model on fraud data, tr
 
 ## Conclusion
 
-The decision tree model achieved an accuracy of `81.67%`, which suggests that it performs well on the given dataset. Future improvements could involve experimenting with other algorithms (such as Random Forests or Gradient Boosting) and tuning hyper-parameters more finely to increase accuracy and generalization.
+The decision tree model achieved an accuracy of `86.67%`, which suggests that it performs well on the given dataset. Future improvements could involve experimenting with other algorithms (such as Random Forests or Gradient Boosting) and tuning hyper-parameters more finely to increase accuracy and generalization.

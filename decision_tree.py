@@ -173,37 +173,56 @@ def precision_recall_f1(tp, fp, fn):
     return precision, recall, f1
 
 
-# Calculate the execution time
-start_time = time.time()  # Start timer
-
 # Convert training and test data to lists
 train_data = np.column_stack([X_train.values, Y_train.values]).tolist()
 test_data = np.column_stack([X_test.values, Y_test.values]).tolist()
 
-# Build the decision tree
-max_depth = 5  # Maximum depth of the tree
-min_size = 10  # Minimum number of samples to further split
-tree = build_tree(train_data, max_depth, min_size)
 
-# Make predictions on the test data
-predictions = [predict(tree, row) for row in test_data]
+# Limiting the max_depth values to a smaller set for faster experimentation
+limited_max_depths = [3, 5, 7, 9]
+min_size = 10
 
-# Call the function on your actual and predicted values
-TP, TN, FP, FN = confusion_matrix_manual(np.array(Y_test), np.array(predictions))
+# Running the experiment
+results = []
 
-precision, recall, f1 = precision_recall_f1(TP, FP, FN)
+for depth in limited_max_depths:
+    start_time = time.time()  # Start timer
+    tree = build_tree(train_data, depth, min_size)
 
-# Calculate accuracy
-accuracy = sum([pred == row[-1] for pred, row in zip(predictions, test_data)]) / len(
-    test_data
-)
+    # Make predictions on the test data
+    predictions = [predict(tree, row) for row in test_data]
 
-# End timer
-end_time = time.time()  # End timer
+    # Call the function on your actual and predicted values
+    TP, TN, FP, FN = confusion_matrix_manual(np.array(Y_test), np.array(predictions))
 
-# Print Metrics
-print(f"F1-Score: {f1 * 100:.2f}%")
-print(f"Recall: {recall * 100:.2f}%")
-print(f"Accuracy: {accuracy * 100:.2f}%")
-print(f"Precision: {precision * 100:.2f}%")
-print(f"Execution Time: {end_time - start_time:.4f} seconds")
+    precision, recall, f1 = precision_recall_f1(TP, FP, FN)
+
+    # Calculate accuracy
+    accuracy = sum(
+        [pred == row[-1] for pred, row in zip(predictions, test_data)]
+    ) / len(test_data)
+    end_time = time.time()
+
+    execution_time = end_time - start_time
+
+    results.append(
+        {
+            "max_depth": depth,
+            "accuracy": f"{accuracy * 100:.2f}%",
+            "execution_time": f"{execution_time:.4f} seconds",
+            "precision": f"{precision * 100:.2f}%",
+            "recall": f"{recall * 100:.2f}%",
+            "f1": f"{f1 * 100:.2f}%",
+        }
+    )
+
+# Displaying the results
+results_df = pd.DataFrame(results)
+print("Decision Tree Experiment Results (Reduced Depths):")
+print(results_df)
+
+
+# Showing the best performing model
+best_result = max(results, key=lambda x: x["accuracy"])
+print("\nBest performing model:")
+print(best_result)
