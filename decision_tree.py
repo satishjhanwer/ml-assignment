@@ -152,6 +152,27 @@ def predict(node, row):
             return node["right"]  # Otherwise, return the predicted class
 
 
+# Calculate Confusion Matrix elements manually
+def confusion_matrix_manual(actual, predicted):
+    TP = sum((actual == 1) & (predicted == 1))  # True Positives
+    TN = sum((actual == 0) & (predicted == 0))  # True Negatives
+    FP = sum((actual == 0) & (predicted == 1))  # False Positives
+    FN = sum((actual == 1) & (predicted == 0))  # False Negatives
+    return TP, TN, FP, FN
+
+
+# Calculate Precision, Recall, and F1-Score manually
+def precision_recall_f1(tp, fp, fn):
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    f1 = (
+        2 * (precision * recall) / (precision + recall)
+        if (precision + recall) > 0
+        else 0
+    )
+    return precision, recall, f1
+
+
 # Calculate the execution time
 start_time = time.time()  # Start timer
 
@@ -167,6 +188,11 @@ tree = build_tree(train_data, max_depth, min_size)
 # Make predictions on the test data
 predictions = [predict(tree, row) for row in test_data]
 
+# Call the function on your actual and predicted values
+TP, TN, FP, FN = confusion_matrix_manual(np.array(Y_test), np.array(predictions))
+
+precision, recall, f1 = precision_recall_f1(TP, FP, FN)
+
 # Calculate accuracy
 accuracy = sum([pred == row[-1] for pred, row in zip(predictions, test_data)]) / len(
     test_data
@@ -175,6 +201,9 @@ accuracy = sum([pred == row[-1] for pred, row in zip(predictions, test_data)]) /
 # End timer
 end_time = time.time()  # End timer
 
-# Print accuracy and execution time
+# Print Metrics
+print(f"F1-Score: {f1 * 100:.2f}%")
+print(f"Recall: {recall * 100:.2f}%")
 print(f"Accuracy: {accuracy * 100:.2f}%")
+print(f"Precision: {precision * 100:.2f}%")
 print(f"Execution Time: {end_time - start_time:.4f} seconds")
