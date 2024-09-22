@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import time
 
 # Load the dataset
 df = pd.read_csv("data/Fraud_check.csv")
@@ -151,6 +152,9 @@ def predict(node, row):
             return node["right"]  # Otherwise, return the predicted class
 
 
+# Calculate the execution time
+start_time = time.time()  # Start timer
+
 # Convert training and test data to lists
 train_data = np.column_stack([X_train.values, Y_train.values]).tolist()
 test_data = np.column_stack([X_test.values, Y_test.values]).tolist()
@@ -167,4 +171,10 @@ predictions = [predict(tree, row) for row in test_data]
 accuracy = sum([pred == row[-1] for pred, row in zip(predictions, test_data)]) / len(
     test_data
 )
+
+# End timer
+end_time = time.time()  # End timer
+
+# Print accuracy and execution time
 print(f"Accuracy: {accuracy * 100:.2f}%")
+print(f"Execution Time: {end_time - start_time:.4f} seconds")
