@@ -3,7 +3,7 @@ import numpy as np
 import time
 
 # Load the dataset
-df = pd.read_csv("data/Fraud_check.csv")
+df = pd.read_csv("./Fraud_check.csv")
 
 # Create a 'Risk' column based on Taxable.Income --  0 = Risky, 1 = Good
 df["Risk"] = np.where(df["Taxable.Income"] <= 30000, 0, 1)

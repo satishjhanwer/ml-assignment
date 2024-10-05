@@ -5,7 +5,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 
 # Load and preprocess data
-df = pd.read_csv("data/Fraud_check.csv")
+df = pd.read_csv("./Fraud_check.csv")
 df["Risk"] = np.where(df["Taxable.Income"] <= 30000, 0, 1)
 df = df.drop(columns=["City.Population", "Taxable.Income"])
 df["Undergrad"] = df["Undergrad"].map({"YES": 1, "NO": 0})
