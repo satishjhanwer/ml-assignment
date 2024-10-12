@@ -110,7 +110,7 @@ data.iloc[:, :-1] = data.iloc[:, :-1].apply(pd.to_numeric, errors="coerce")
 X = data.drop(columns=["Class"])
 Y = data["Class"]
 X_train, X_test, Y_train, Y_test = train_test_split(
-    X, Y, test_size=0.2, random_state=42
+    X, Y, test_size=0.2, random_state=55
 )
 
 # Custom Naive Bayes
