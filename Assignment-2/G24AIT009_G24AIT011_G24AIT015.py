@@ -100,7 +100,7 @@ class CustomGaussianNB:
         )
 
 
-# Load data set here and doing required changes like converting good to `1` and bad to `0` and removing `Unnamed: 0` and updated values to numeric
+# Load data set here and doing required changes like converting good to `1` and bad to `0` and removing `Unnamed: 0` column from the data (its a index column which is not relevant for us) and updated values to numeric
 data = pd.read_csv("./ion_binary_classification.csv")
 data = data.drop(columns=["Unnamed: 0"])
 data["Class"] = data["Class"].map({"good": 1, "bad": 0})
@@ -141,7 +141,11 @@ roc_auc_sklearn = roc_auc_score(Y_test, y_pred_sklearn)
 confusion_matrix_sklearn = confusion_matrix(Y_test, y_pred_sklearn)
 df_metrics_sklearn = pd.DataFrame(metrics_sklearn).transpose()
 
+print("Custom Gaussian Naive Bayes implementation Result:")
 print(df_metrics_custom)
+print("Execution Time for custom implementation:")
 print(custom_train_time)
+print("Sklearn Gaussian Naive Bayes implementation:")
 print(df_metrics_sklearn)
+print("Execution Time for Sklearn implementation:")
 print(sklearn_train_time)
