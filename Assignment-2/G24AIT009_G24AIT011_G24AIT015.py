@@ -142,4 +142,6 @@ confusion_matrix_sklearn = confusion_matrix(Y_test, y_pred_sklearn)
 df_metrics_sklearn = pd.DataFrame(metrics_sklearn).transpose()
 
 print(df_metrics_custom)
+print(custom_train_time)
 print(df_metrics_sklearn)
+print(sklearn_train_time)
