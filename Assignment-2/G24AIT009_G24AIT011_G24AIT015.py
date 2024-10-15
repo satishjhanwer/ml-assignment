@@ -2,12 +2,15 @@ from time import time
 import pandas as pd
 import numpy as np
 from math import pi
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
     classification_report,
     confusion_matrix,
     roc_auc_score,
+    roc_curve,
 )
 
 
@@ -100,7 +103,7 @@ class CustomGaussianNB:
         )
 
 
-# Load data set here and doing required changes like converting good to `1` and bad to `0` and removing `Unnamed: 0` column from the data (its a index column which is not relevant for us) and updated values to numeric
+# Load data set here and doing required changes like converting good to `1` and bad to `0` and removing `Unnamed: 0` and updated values to numeric
 data = pd.read_csv("./ion_binary_classification.csv")
 data = data.drop(columns=["Unnamed: 0"])
 data["Class"] = data["Class"].map({"good": 1, "bad": 0})
@@ -110,8 +113,20 @@ data.iloc[:, :-1] = data.iloc[:, :-1].apply(pd.to_numeric, errors="coerce")
 X = data.drop(columns=["Class"])
 Y = data["Class"]
 X_train, X_test, Y_train, Y_test = train_test_split(
-    X, Y, test_size=0.2, random_state=55
+    X, Y, test_size=0.2, random_state=80
 )
+
+corr_matrix = X.corr()
+top_corr_features = (
+    corr_matrix.abs().unstack().sort_values(ascending=False).drop_duplicates()
+)
+top_features = (
+    top_corr_features[top_corr_features > 0.5].index.get_level_values(0).unique()[:10]
+)
+plt.figure(figsize=(10, 8))
+sns.heatmap(X[top_features].corr(), annot=True, cmap="coolwarm", vmin=-1, vmax=1)
+plt.title("Top Feature Correlation Heatmap")
+plt.show()
 
 # Custom Naive Bayes
 custom_nb = CustomGaussianNB()
@@ -141,11 +156,130 @@ roc_auc_sklearn = roc_auc_score(Y_test, y_pred_sklearn)
 confusion_matrix_sklearn = confusion_matrix(Y_test, y_pred_sklearn)
 df_metrics_sklearn = pd.DataFrame(metrics_sklearn).transpose()
 
-print("Custom Gaussian Naive Bayes implementation Result:")
-print(df_metrics_custom)
-print("Execution Time for custom implementation:")
-print(custom_train_time)
-print("Sklearn Gaussian Naive Bayes implementation:")
-print(df_metrics_sklearn)
-print("Execution Time for Sklearn implementation:")
-print(sklearn_train_time)
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# Heatmap for custom Naive Bayes
+sns.heatmap(
+    confusion_matrix(Y_test, y_pred_custom), annot=True, cmap="Blues", ax=axes[0]
+)
+axes[0].set_title("Custom Naive Bayes")
+axes[0].set_xlabel("False Positive Rate")
+axes[0].set_ylabel("True Positive Rate")
+
+# Heatmap for Sklearn Naive Bayes
+sns.heatmap(
+    confusion_matrix(Y_test, y_pred_sklearn), annot=True, cmap="Blues", ax=axes[1]
+)
+axes[1].set_title("Sklearn Naive Bayes")
+axes[1].set_xlabel("False Positive Rate")
+axes[1].set_ylabel("True Positive Rate")
+plt.tight_layout()
+plt.show()
+
+
+fpr_custom, tpr_custom, _ = roc_curve(Y_test, y_pred_custom)
+fpr_sklearn, tpr_sklearn, _ = roc_curve(Y_test, y_score=y_pred_sklearn)
+
+
+plt.figure(figsize=(10, 6))
+sns.lineplot(
+    x=fpr_custom, y=tpr_custom, label=f"Custom Naive Bayes (AUC = {roc_auc_custom:.2f})"
+)
+sns.lineplot(
+    x=fpr_sklearn,
+    y=tpr_sklearn,
+    label=f"Sklearn Naive Bayes (AUC = {roc_auc_sklearn:.2f})",
+)
+plt.plot([0, 1], [0, 1], linestyle="--", color="gray", label="Random Guess")
+plt.xlabel("")
+plt.ylabel("True Positive Rate")
+plt.legend(loc="lower right")
+plt.title("ROC Curve Comparison")
+plt.show()
+
+# Concatenate the two DataFrames side by side
+df_combined = pd.concat(
+    [df_metrics_custom, df_metrics_sklearn],
+    axis=1,
+    keys=["Custom Model", "Sklearn Model"],
+)
+
+# Check the structure of df_combined
+print(df_combined)
+
+# Drop 'support' since it's not needed for the plot
+df_metrics = df_combined.drop(
+    columns=[("Custom Model", "support"), ("Sklearn Model", "support")]
+)
+
+# Flatten the MultiIndex for easier plotting
+df_metrics.columns = [
+    "Custom Model " + col for col in ["precision", "recall", "f1-score"]
+] + ["Sklearn Model " + col for col in ["precision", "recall", "f1-score"]]
+
+# Select rows that contain the actual metrics, not 'accuracy', 'macro avg', etc.
+df_filtered = df_metrics.loc[
+    ["0", "1"]
+]  # Or ['0', '1'] for binary class classification
+
+# Extract overall accuracy for both models
+custom_accuracy = df_combined.loc["accuracy", ("Custom Model", "precision")]
+sklearn_accuracy = df_combined.loc["accuracy", ("Sklearn Model", "precision")]
+
+# Create a separate DataFrame for accuracy
+df_accuracy = pd.DataFrame(
+    {
+        "Model": ["Custom Model", "Sklearn Model"],
+        "Accuracy": [custom_accuracy, sklearn_accuracy],
+    }
+)
+
+# Plot class-wise metrics (precision, recall, f1-score)
+ax = df_filtered.plot(kind="bar", figsize=(10, 8))
+
+# Add title and labels
+plt.title(
+    "Comparison of Classification Metrics (Custom Model vs Sklearn Model)", fontsize=14
+)
+plt.ylabel("Score")
+plt.xlabel("Class")
+plt.xticks(rotation=0)
+
+# Add value labels on the class-wise bars
+for p in ax.patches:
+    ax.annotate(
+        format(p.get_height(), ".2f"),
+        (p.get_x() + p.get_width() / 2.0, p.get_height()),
+        ha="center",
+        va="center",
+        xytext=(0, 10),
+        textcoords="offset points",
+    )
+
+# Plot overall accuracy as a separate bar graph
+plt.figure(figsize=(6, 7))
+ax2 = df_accuracy.plot(
+    kind="bar", x="Model", y="Accuracy", legend=False, color=["#1f77b4", "#ff7f0e"]
+)
+
+# Add title and labels for accuracy
+plt.title("Overall Accuracy (Custom Model vs Sklearn Model)", fontsize=14)
+plt.ylabel("Accuracy")
+plt.xticks(rotation=0)
+
+# Add value labels on the accuracy bars
+for p in ax2.patches:
+    ax2.annotate(
+        format(p.get_height(), ".2f"),
+        (p.get_x() + p.get_width() / 2.0, p.get_height()),
+        ha="center",
+        va="center",
+        xytext=(0, 10),
+        textcoords="offset points",
+    )
+
+plt.grid(axis="y", linestyle="--", alpha=0.7)
+
+# Show the plots
+plt.tight_layout()
+plt.show()
