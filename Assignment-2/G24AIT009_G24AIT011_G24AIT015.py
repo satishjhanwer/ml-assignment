@@ -104,7 +104,7 @@ class CustomGaussianNB:
 
 
 # Load data set here and doing required changes like converting good to `1` and bad to `0` and removing `Unnamed: 0` and updated values to numeric
-data = pd.read_csv("./ion_binary_classification.csv")
+data = pd.read_csv("ion_binary_classification.csv")
 data = data.drop(columns=["Unnamed: 0"])
 data["Class"] = data["Class"].map({"good": 1, "bad": 0})
 data.iloc[:, :-1] = data.iloc[:, :-1].apply(pd.to_numeric, errors="coerce")
@@ -157,7 +157,6 @@ confusion_matrix_sklearn = confusion_matrix(Y_test, y_pred_sklearn)
 df_metrics_sklearn = pd.DataFrame(metrics_sklearn).transpose()
 
 fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-
 # Heatmap for custom Naive Bayes
 sns.heatmap(
     confusion_matrix(Y_test, y_pred_custom), annot=True, cmap="Blues", ax=axes[0]
@@ -165,7 +164,6 @@ sns.heatmap(
 axes[0].set_title("Custom Naive Bayes")
 axes[0].set_xlabel("False Positive Rate")
 axes[0].set_ylabel("True Positive Rate")
-
 # Heatmap for Sklearn Naive Bayes
 sns.heatmap(
     confusion_matrix(Y_test, y_pred_sklearn), annot=True, cmap="Blues", ax=axes[1]
@@ -176,10 +174,8 @@ axes[1].set_ylabel("True Positive Rate")
 plt.tight_layout()
 plt.show()
 
-
 fpr_custom, tpr_custom, _ = roc_curve(Y_test, y_pred_custom)
 fpr_sklearn, tpr_sklearn, _ = roc_curve(Y_test, y_score=y_pred_sklearn)
-
 
 plt.figure(figsize=(10, 6))
 sns.lineplot(
@@ -197,55 +193,35 @@ plt.legend(loc="lower right")
 plt.title("ROC Curve Comparison")
 plt.show()
 
-# Concatenate the two DataFrames side by side
 df_combined = pd.concat(
     [df_metrics_custom, df_metrics_sklearn],
     axis=1,
     keys=["Custom Model", "Sklearn Model"],
 )
-
-# Check the structure of df_combined
-print(df_combined)
-
-# Drop 'support' since it's not needed for the plot
 df_metrics = df_combined.drop(
     columns=[("Custom Model", "support"), ("Sklearn Model", "support")]
 )
-
-# Flatten the MultiIndex for easier plotting
 df_metrics.columns = [
     "Custom Model " + col for col in ["precision", "recall", "f1-score"]
 ] + ["Sklearn Model " + col for col in ["precision", "recall", "f1-score"]]
-
-# Select rows that contain the actual metrics, not 'accuracy', 'macro avg', etc.
 df_filtered = df_metrics.loc[
     ["0", "1"]
 ]  # Or ['0', '1'] for binary class classification
-
-# Extract overall accuracy for both models
 custom_accuracy = df_combined.loc["accuracy", ("Custom Model", "precision")]
 sklearn_accuracy = df_combined.loc["accuracy", ("Sklearn Model", "precision")]
-
-# Create a separate DataFrame for accuracy
 df_accuracy = pd.DataFrame(
     {
         "Model": ["Custom Model", "Sklearn Model"],
         "Accuracy": [custom_accuracy, sklearn_accuracy],
     }
 )
-
-# Plot class-wise metrics (precision, recall, f1-score)
 ax = df_filtered.plot(kind="bar", figsize=(10, 8))
-
-# Add title and labels
 plt.title(
     "Comparison of Classification Metrics (Custom Model vs Sklearn Model)", fontsize=14
 )
 plt.ylabel("Score")
 plt.xlabel("Class")
 plt.xticks(rotation=0)
-
-# Add value labels on the class-wise bars
 for p in ax.patches:
     ax.annotate(
         format(p.get_height(), ".2f"),
@@ -255,19 +231,13 @@ for p in ax.patches:
         xytext=(0, 10),
         textcoords="offset points",
     )
-
-# Plot overall accuracy as a separate bar graph
 plt.figure(figsize=(6, 7))
 ax2 = df_accuracy.plot(
     kind="bar", x="Model", y="Accuracy", legend=False, color=["#1f77b4", "#ff7f0e"]
 )
-
-# Add title and labels for accuracy
 plt.title("Overall Accuracy (Custom Model vs Sklearn Model)", fontsize=14)
 plt.ylabel("Accuracy")
 plt.xticks(rotation=0)
-
-# Add value labels on the accuracy bars
 for p in ax2.patches:
     ax2.annotate(
         format(p.get_height(), ".2f"),
@@ -277,9 +247,6 @@ for p in ax2.patches:
         xytext=(0, 10),
         textcoords="offset points",
     )
-
 plt.grid(axis="y", linestyle="--", alpha=0.7)
-
-# Show the plots
 plt.tight_layout()
 plt.show()
